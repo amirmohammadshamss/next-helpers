@@ -48,6 +48,7 @@ export class ApiDataFactory {
 		const options: RequestInit = {
 			method: method,
 			headers: {
+				'Accept-Encoding': 'identity',
 				Accept: "application/json",
 				"Content-Type": "application/json",
 			},
