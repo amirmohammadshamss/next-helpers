@@ -22,8 +22,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiDataFactory = void 0;
+const axios_1 = __importDefault(require("axios"));
 class ApiDataFactory {
     static registerObjectClass(key, classConstructor) {
         if (!this.classMap.has(key))
@@ -59,46 +63,48 @@ class ApiDataFactory {
                 link = link.substring(process.env.NEXT_PUBLIC_API_URL?.length ?? 0);
             link = process.env.NEXT_PUBLIC_INTERNAL_API_URL + "?uri=" + encodeURIComponent(link);
         }
-        const options = {
+        const axiosConfig = {
             method: method,
+            url: link,
             headers: {
+                'Accept-Encoding': 'identity',
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-            body: body ? JSON.stringify(body) : undefined,
+            data: body ? JSON.stringify(body) : undefined,
         };
         if (token) {
-            options.headers = {
-                ...options.headers,
+            axiosConfig.headers = {
+                ...axiosConfig.headers,
                 Authorization: `Bearer ${token}`,
             };
         }
-        const apiResponse = await fetch(link, options);
-        response.ok = apiResponse.ok;
-        response.response = apiResponse.status;
-        if (!apiResponse.ok) {
-            response.error = apiResponse.statusText;
-            return response;
-        }
-        if (apiResponse.status === 204)
-            return response;
         try {
-            const jsonApi = await apiResponse.json();
-            const included = jsonApi.included ?? [];
-            if (jsonApi.links) {
-                response.self = jsonApi.links.self;
-                if (jsonApi.links.next) {
-                    response.next = jsonApi.links.next;
-                    response.nextPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.next });
+            const axiosResponse = await (0, axios_1.default)(axiosConfig);
+            response.ok = axiosResponse.status >= 200 && axiosResponse.status < 300;
+            response.response = axiosResponse.status;
+            if (!response.ok) {
+                response.error = axiosResponse.statusText;
+                return response;
+            }
+            if (axiosResponse.status === 204)
+                return response;
+            const jsonData = axiosResponse.data;
+            const included = jsonData.included ?? [];
+            if (jsonData.links) {
+                response.self = jsonData.links.self;
+                if (jsonData.links.next) {
+                    response.next = jsonData.links.next;
+                    response.nextPage = async () => ApiDataFactory.get(classKey, { link: jsonData.links.next });
                 }
-                if (jsonApi.links.prev) {
-                    response.prev = jsonApi.links.prev;
-                    response.prevPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.prev });
+                if (jsonData.links.prev) {
+                    response.prev = jsonData.links.prev;
+                    response.prevPage = async () => ApiDataFactory.get(classKey, { link: jsonData.links.prev });
                 }
             }
-            if (Array.isArray(jsonApi.data)) {
+            if (Array.isArray(jsonData.data)) {
                 const responseData = [];
-                for (const data of jsonApi.data) {
+                for (const data of jsonData.data) {
                     const object = new factoryClass();
                     object.rehydrate({ jsonApi: data, included: included });
                     responseData.push(object);
@@ -107,12 +113,12 @@ class ApiDataFactory {
             }
             else {
                 const responseData = new factoryClass();
-                responseData.rehydrate({ jsonApi: jsonApi.data, included: included });
+                responseData.rehydrate({ jsonApi: jsonData.data, included: included });
                 response.data = responseData;
             }
         }
-        catch (e) {
-            console.error(e);
+        catch (error) {
+            console.error(error);
         }
         return response;
     }
