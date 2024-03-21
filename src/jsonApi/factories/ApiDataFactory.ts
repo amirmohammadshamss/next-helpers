@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { ApiDataInterface } from "../interfaces/ApiDataInterface";
 import { ApiResponseInterface } from "../interfaces/ApiResponseInterface";
-
+const dns = require("dns");
 export class ApiDataFactory {
     public static classMap = new Map<string, { new (): ApiDataInterface }>();
 
@@ -16,7 +16,7 @@ export class ApiDataFactory {
         body?: any
     ): Promise<ApiResponseInterface> {
         const factoryClass = this.classMap.get(classKey);
-
+        dns.setDefaultResultOrder("ipv4first")
         if (!factoryClass) {
             throw new Error(`Class not registered for key: ${classKey}`);
         }
