@@ -47,13 +47,13 @@ export class ApiDataFactory {
         }
 
         const axiosConfig: AxiosRequestConfig = {
-            // method: method,
-            // url: link,
-            // headers: {
+            method: method,
+            url: link,
+            headers: {
             //     'Accept-Encoding': 'identity',
-            //     Accept: "application/json",
-            //     "Content-Type": "application/json",
-            // },
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
             data: body ? JSON.stringify(body) : undefined,
         };
 
