@@ -22,8 +22,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiDataFactory = void 0;
+const axios_1 = __importDefault(require("axios"));
 const dns = require("dns");
 class ApiDataFactory {
     static registerObjectClass(key, classConstructor) {
@@ -75,28 +79,18 @@ class ApiDataFactory {
                 Authorization: `Bearer ${token}`,
             };
         }
-        const apiResponse = await fetch(link);
-        response.ok = apiResponse.ok;
-        response.response = apiResponse.status;
-        if (!apiResponse.ok) {
-            const json = await apiResponse.json();
-            if (json.message !== undefined) {
-                if (Array.isArray(json.message)) {
-                    response.error = json.message.join(", ");
-                }
-                else {
-                    response.error = json.message;
-                }
-            }
-            else {
-                response.error = apiResponse.statusText;
-            }
-            return response;
-        }
-        if (apiResponse.status === 204)
-            return response;
         try {
-            const jsonApi = await apiResponse.json();
+            const apiResponse = await axios_1.default.get(link);
+            response.ok = apiResponse.status >= 200 && apiResponse.status < 300;
+            response.response = apiResponse.status;
+            if (!apiResponse.data.ok) {
+                const errorMessage = apiResponse.data.message ?? apiResponse.statusText;
+                response.error = Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage;
+                return response;
+            }
+            if (apiResponse.status === 204)
+                return response;
+            const jsonApi = apiResponse.data;
             const included = jsonApi.included ?? [];
             if (jsonApi.links) {
                 response.self = jsonApi.links.self;
@@ -112,20 +106,20 @@ class ApiDataFactory {
             if (Array.isArray(jsonApi.data)) {
                 const responseData = [];
                 for (const data of jsonApi.data) {
-                    const object = new factoryClass();
+                    const object = {};
                     object.rehydrate({ jsonApi: data, included: included });
                     responseData.push(object);
                 }
                 response.data = responseData;
             }
             else {
-                const responseData = new factoryClass();
+                const responseData = {};
                 responseData.rehydrate({ jsonApi: jsonApi.data, included: included });
                 response.data = responseData;
             }
         }
-        catch (e) {
-            console.error(e);
+        catch (error) {
+            console.error(error);
         }
         return response;
     }
