@@ -47,23 +47,24 @@ export class ApiDataFactory {
 
 		const options: RequestInit = {
 			method: method,
-			headers: {
-				Accept: "application/json",
-				"Content-Type": "application/json",
-			},
+			// headers: {
+			// 	Accept: "application/json",
+			// 	"Content-Type": "application/json",
+			// },
 			body: body ? JSON.stringify(body) : undefined,
 		};
 
-		if (token) {
-			options.headers = {
-				...options.headers,
-				Authorization: `Bearer ${token}`,
-			};
-		}
+		// if (token) {
+		// 	options.headers = {
+		// 		...options.headers,
+		// 		Authorization: `Bearer ${token}`,
+		// 	};
+		// }
 
 		//if (params?.revalidate) options.cache = "reload";
+		options.cache = "force-cache";
 
-		const apiResponse = await fetch(link);
+		const apiResponse = await fetch(link, options);
 
 		response.ok = apiResponse.ok;
 		response.response = apiResponse.status;
