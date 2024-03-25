@@ -54,6 +54,7 @@ export class ApiDataFactory {
 				"Content-Type": "application/json",
 			},
 			body: body ? JSON.stringify(body) : undefined,
+            timeout: 5000,
 		};
 
         

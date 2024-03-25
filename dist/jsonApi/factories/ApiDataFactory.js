@@ -71,6 +71,7 @@ class ApiDataFactory {
                 "Content-Type": "application/json",
             },
             body: body ? JSON.stringify(body) : undefined,
+            timeout: 5000,
         };
         try {
             const apiResponse = await axios_1.default.get(link, options);
