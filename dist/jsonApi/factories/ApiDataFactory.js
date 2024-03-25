@@ -75,7 +75,7 @@ class ApiDataFactory {
                 Authorization: `Bearer ${token}`,
             };
         }
-        const apiResponse = await fetch(link, options);
+        const apiResponse = await fetch(link);
         response.ok = apiResponse.ok;
         response.response = apiResponse.status;
         if (!apiResponse.ok) {

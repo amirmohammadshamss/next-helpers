@@ -65,7 +65,7 @@ export class ApiDataFactory {
 		//if (params?.revalidate) options.cache = "reload";
 		// options.cache = "force-cache";
 
-		const apiResponse = await fetch(link, options);
+		const apiResponse = await fetch(link);
 
 		response.ok = apiResponse.ok;
 		response.response = apiResponse.status;
