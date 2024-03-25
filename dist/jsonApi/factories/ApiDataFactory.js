@@ -73,6 +73,9 @@ class ApiDataFactory {
             body: body ? JSON.stringify(body) : undefined,
             timeout: 5000,
         };
+        if (token) {
+            options.headers['Authorization'] = `Bearer ${token}`;
+        }
         try {
             const apiResponse = await axios_1.default.get(link, options);
             response.ok = apiResponse.status >= 200 && apiResponse.status < 300;

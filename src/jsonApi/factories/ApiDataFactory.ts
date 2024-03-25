@@ -52,6 +52,7 @@ export class ApiDataFactory {
 			headers: {
 				Accept: "application/json",
 				"Content-Type": "application/json",
+				
 			},
 			body: body ? JSON.stringify(body) : undefined,
             timeout: 5000,
@@ -59,19 +60,12 @@ export class ApiDataFactory {
 
         
 
-		// if (token) {
-		// 	options.headers = {
-		// 		...options.headers,
-		// 		Authorization: `Bearer ${token}`,
-		// 	};
-		// }
+		if (token) {
+			options.headers['Authorization'] = `Bearer ${token}`;
+		}
 
 		//if (params?.revalidate) options.cache = "reload";
 		// options.cache = "force-cache";
-
-
-        
-        // const response: any = {};
 
         try {
             const apiResponse: AxiosResponse = await axios.get(link,options);
