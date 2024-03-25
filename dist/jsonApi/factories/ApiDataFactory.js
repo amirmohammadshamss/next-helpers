@@ -48,7 +48,6 @@ class ApiDataFactory {
         let link = params?.link;
         if (!link)
             link = new factoryClass().generateApiUrl(params);
-        dns.setDefaultResultOrder("ipv4first");
         let token = undefined;
         if (typeof window === "undefined") {
             const serverCookies = await Promise.resolve().then(() => __importStar(require("next/headers")));
@@ -73,14 +72,8 @@ class ApiDataFactory {
             },
             body: body ? JSON.stringify(body) : undefined,
         };
-        if (token) {
-            options.headers = {
-                ...options.headers,
-                Authorization: `Bearer ${token}`,
-            };
-        }
         try {
-            const apiResponse = await axios_1.default.get(link);
+            const apiResponse = await axios_1.default.get(link, options);
             response.ok = apiResponse.status >= 200 && apiResponse.status < 300;
             response.response = apiResponse.status;
             if (!apiResponse.data.ok) {

@@ -30,7 +30,7 @@ export class ApiDataFactory {
 
 		let link = params?.link;
 		if (!link) link = new factoryClass().generateApiUrl(params);
-        dns.setDefaultResultOrder("ipv4first")
+        // dns.setDefaultResultOrder("ipv4first")
 
 		let token: string | undefined = undefined;
 		if (typeof window === "undefined") {
@@ -47,7 +47,7 @@ export class ApiDataFactory {
 			link = process.env.NEXT_PUBLIC_INTERNAL_API_URL + "?uri=" + encodeURIComponent(link);
 		}
 
-		const options: RequestInit = {
+		const options = {
 			method: method,
 			headers: {
 				Accept: "application/json",
@@ -56,12 +56,14 @@ export class ApiDataFactory {
 			body: body ? JSON.stringify(body) : undefined,
 		};
 
-		if (token) {
-			options.headers = {
-				...options.headers,
-				Authorization: `Bearer ${token}`,
-			};
-		}
+        
+
+		// if (token) {
+		// 	options.headers = {
+		// 		...options.headers,
+		// 		Authorization: `Bearer ${token}`,
+		// 	};
+		// }
 
 		//if (params?.revalidate) options.cache = "reload";
 		// options.cache = "force-cache";
@@ -71,7 +73,7 @@ export class ApiDataFactory {
         // const response: any = {};
 
         try {
-            const apiResponse: AxiosResponse = await axios.get(link);
+            const apiResponse: AxiosResponse = await axios.get(link,options);
     
             response.ok = apiResponse.status >= 200 && apiResponse.status < 300;
             response.response = apiResponse.status;
