@@ -65,7 +65,7 @@ export class ApiDataFactory {
     //if (params?.revalidate) options.cache = "reload";
     options.cache = "force-cache";
 
-    const apiResponse = await axios(link);
+    const apiResponse = await axios("https://api.test.swanlake.ai/v1.0/models%3Fsearch=Crystal%2520Clear%2520XL");
 
     // response.ok = apiResponse.ok;
     response.response = apiResponse.status;
