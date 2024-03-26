@@ -22,8 +22,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiDataFactory = void 0;
+const axios_1 = __importDefault(require("axios"));
 class ApiDataFactory {
     static registerObjectClass(key, classConstructor) {
         if (!this.classMap.has(key))
@@ -66,7 +70,6 @@ class ApiDataFactory {
                 "Content-Type": "application/json",
             },
             body: body ? JSON.stringify(body) : undefined,
-            signal: AbortSignal.timeout(2000),
         };
         if (token) {
             options.headers = {
@@ -75,58 +78,8 @@ class ApiDataFactory {
             };
         }
         options.cache = "force-cache";
-        const apiResponse = await fetch(link, options);
-        response.ok = apiResponse.ok;
+        const apiResponse = await (0, axios_1.default)(link);
         response.response = apiResponse.status;
-        if (!apiResponse.ok) {
-            const json = await apiResponse.json();
-            if (json.message !== undefined) {
-                if (Array.isArray(json.message)) {
-                    response.error = json.message.join(", ");
-                }
-                else {
-                    response.error = json.message;
-                }
-            }
-            else {
-                response.error = apiResponse.statusText;
-            }
-            return response;
-        }
-        if (apiResponse.status === 204)
-            return response;
-        try {
-            const jsonApi = await apiResponse.json();
-            const included = jsonApi.included ?? [];
-            if (jsonApi.links) {
-                response.self = jsonApi.links.self;
-                if (jsonApi.links.next) {
-                    response.next = jsonApi.links.next;
-                    response.nextPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.next });
-                }
-                if (jsonApi.links.prev) {
-                    response.prev = jsonApi.links.prev;
-                    response.prevPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.prev });
-                }
-            }
-            if (Array.isArray(jsonApi.data)) {
-                const responseData = [];
-                for (const data of jsonApi.data) {
-                    const object = new factoryClass();
-                    object.rehydrate({ jsonApi: data, included: included });
-                    responseData.push(object);
-                }
-                response.data = responseData;
-            }
-            else {
-                const responseData = new factoryClass();
-                responseData.rehydrate({ jsonApi: jsonApi.data, included: included });
-                response.data = responseData;
-            }
-        }
-        catch (e) {
-            console.error(e);
-        }
         return response;
     }
     static async get(classKey, params) {
