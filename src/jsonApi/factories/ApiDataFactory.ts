@@ -1,3 +1,4 @@
+import axios from "axios";
 import { ApiDataInterface } from "../interfaces/ApiDataInterface";
 import { ApiResponseInterface } from "../interfaces/ApiResponseInterface";
 
@@ -52,8 +53,6 @@ export class ApiDataFactory {
         "Content-Type": "application/json",
       },
       body: body ? JSON.stringify(body) : undefined,
-
-      signal: AbortSignal.timeout(2000),
     };
 
     if (token) {
@@ -66,65 +65,65 @@ export class ApiDataFactory {
     //if (params?.revalidate) options.cache = "reload";
     options.cache = "force-cache";
 
-    const apiResponse = await fetch(link, options);
+    const apiResponse = await axios(link);
 
-    response.ok = apiResponse.ok;
+    // response.ok = apiResponse.ok;
     response.response = apiResponse.status;
 
-    if (!apiResponse.ok) {
-      const json = await apiResponse.json();
-      if (json.message !== undefined) {
-        if (Array.isArray(json.message)) {
-          response.error = json.message.join(", ");
-        } else {
-          response.error = json.message;
-        }
-      } else {
-        response.error = apiResponse.statusText;
-      }
-      return response;
-    }
+    // if (!apiResponse.ok) {
+    //   const json = await apiResponse.json();
+    //   if (json.message !== undefined) {
+    //     if (Array.isArray(json.message)) {
+    //       response.error = json.message.join(", ");
+    //     } else {
+    //       response.error = json.message;
+    //     }
+    //   } else {
+    //     response.error = apiResponse.statusText;
+    //   }
+    //   return response;
+    // }
 
-    if (apiResponse.status === 204) return response;
+    // if (apiResponse.status === 204) return response;
 
-    try {
-      const jsonApi: any = await apiResponse.json();
+    // try {
+    //   const jsonApi: any = await apiResponse.json();
 
-      const included: any = jsonApi.included ?? [];
+    //   const included: any = jsonApi.included ?? [];
 
-      if (jsonApi.links) {
-        response.self = jsonApi.links.self;
+    //   if (jsonApi.links) {
+    //     response.self = jsonApi.links.self;
 
-        if (jsonApi.links.next) {
-          response.next = jsonApi.links.next;
-          response.nextPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.next });
-        }
+    //     if (jsonApi.links.next) {
+    //       response.next = jsonApi.links.next;
+    //       response.nextPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.next });
+    //     }
 
-        if (jsonApi.links.prev) {
-          response.prev = jsonApi.links.prev;
-          response.prevPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.prev });
-        }
-      }
+    //     if (jsonApi.links.prev) {
+    //       response.prev = jsonApi.links.prev;
+    //       response.prevPage = async () => ApiDataFactory.get(classKey, { link: jsonApi.links.prev });
+    //     }
+    //   }
 
-      if (Array.isArray(jsonApi.data)) {
-        const responseData: T[] = [];
+    //   if (Array.isArray(jsonApi.data)) {
+    //     const responseData: T[] = [];
 
-        for (const data of jsonApi.data) {
-          const object = new factoryClass();
-          object.rehydrate({ jsonApi: data, included: included });
-          responseData.push(object as T);
-        }
+    //     for (const data of jsonApi.data) {
+    //       const object = new factoryClass();
+    //       object.rehydrate({ jsonApi: data, included: included });
+    //       responseData.push(object as T);
+    //     }
 
-        response.data = responseData;
-      } else {
-        const responseData = new factoryClass();
-        responseData.rehydrate({ jsonApi: jsonApi.data, included: included });
+    //     response.data = responseData;
+    //   } else {
+    //     const responseData = new factoryClass();
+    //     responseData.rehydrate({ jsonApi: jsonApi.data, included: included });
 
-        response.data = responseData;
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    //     response.data = responseData;
+    //   }
+    // } catch (e) {
+    //   console.error(e);
+    // }
 
     return response;
   }
